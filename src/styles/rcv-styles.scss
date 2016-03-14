@@ -1,0 +1,34 @@
+$gray: #e4e4e4;
+$cell-width: 30px;
+
+.rcv-results-container {
+  position: relative;
+}
+
+.rcv-row {
+  border-bottom: 1px solid $gray;
+  &:last-child {
+    border-bottom: none;
+  }
+  td {
+    height: $cell-width;
+    padding: 0;
+    text-align: center;
+  }
+  .index,
+  .name,
+  .participant-indexes {
+    width: $cell-width;
+    border-right: 1px solid $gray;
+  }
+}
+
+.participant {
+  position: absolute;
+  width: $cell-width;
+  height: $cell-width;
+  text-align: center;
+  border-radius: 50%;
+  border: 1px solid $gray;
+  box-sizing: border-box;
+}

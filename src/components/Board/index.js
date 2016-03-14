@@ -1,7 +1,8 @@
 import React from 'react';
 import classNames from 'classnames';
 
-import Row from './Row.js';
+import Row from './../Row/index.js';
+import Lane from './../Lane/index.js';
 
 export default class Board extends React.Component {
   /**
@@ -10,10 +11,12 @@ export default class Board extends React.Component {
    * - row consists of an index and name
    * - the lane is off to the side
    *
-   * STEP 1:
+   * STEP 1: check
    * - board notifies rows of current round
    * - each row responds and shows its participants indexes
    *
+   * STEP 2:
+   * -round 0 begins, filter out loser from previous round (not needed)
    *
    * - each row is registered as observer of lane
    * - when lane receives a list of particpants, it notifies the rows
@@ -42,10 +45,13 @@ export default class Board extends React.Component {
       return (
         <Row
           key={i}
+          ref={'rcvRow' + i}
           index={i}
           name={c}
           rounds={rounds}
           currentRound={this.state.currentRound}
+          numHeaderCells={3}
+          cellWidth={this.props.cellWidth}
         />
       )
     });
@@ -55,7 +61,7 @@ export default class Board extends React.Component {
     let previousClasses = classNames('waves-effect', 'waves-light', 'btn', { disabled: this.state.currentRound === 0 });
     let nextClasses = classNames('waves-effect', 'waves-light', 'btn', { disabled: this.state.currentRound === this.props.rounds.length - 1 });
     return (
-      <div className="round-buttons">
+      <div className="round-buttons row">
         <a className={previousClasses} onClick={this._changeRound.bind(this, -1)}>-</a>
         <span>Current Round: {this.state.currentRound}</span>
         <a className={nextClasses} onClick={this._changeRound.bind(this, 1)}>+</a>
@@ -72,12 +78,27 @@ export default class Board extends React.Component {
     let roundButtons = this._buildRoundButtons();
     return (
       <div>
-        <table>
-          <tbody>
-            {rows}
-          </tbody>
-        </table>
-        {roundButtons}
+        <h1>placeholder header</h1>
+        <div className="rcv-results-container">
+          <div className="row">
+            <table className="row-container col s10">
+              <tbody>
+                {rows}
+              </tbody>
+            </table>
+
+            <div className="col s2">
+              <Lane
+                numRows={this.props.candidates.length}
+                currentRound={this.state.currentRound}
+                participants={this.props.participants}
+                cellWidth={this.props.cellWidth}
+              />
+            </div>
+
+          </div>
+          {roundButtons}
+        </div>
       </div>
     )
   }
