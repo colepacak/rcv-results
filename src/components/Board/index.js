@@ -1,5 +1,6 @@
 import React from 'react';
 import classNames from 'classnames';
+import { inRange } from 'lodash';
 
 import Row from './../Row/index.js';
 import Lane from './../Lane/index.js';
@@ -70,7 +71,10 @@ export default class Board extends React.Component {
   }
 
   _changeRound(increment) {
-    this.setState({ currentRound: this.state.currentRound + increment })
+    let currentRound = this.state.currentRound + increment;
+    if (inRange(currentRound, 0, this.props.rounds.length)) {
+      this.setState({ currentRound: currentRound })
+    }
   }
 
   render() {
