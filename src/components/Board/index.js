@@ -1,9 +1,10 @@
 import React from 'react';
 import classNames from 'classnames';
-import { inRange } from 'lodash';
+import { inRange, pickBy, map } from 'lodash';
 
 import Row from './../Row/index.js';
 import Lane from './../Lane/index.js';
+import Participant from './../Participant/index.js';
 
 export default class Board extends React.Component {
   /**
@@ -30,8 +31,22 @@ export default class Board extends React.Component {
     currentRound: React.PropTypes.number
   };
 
+  state = {
+    isReady: false,
+    activeParticipants: []
+  };
+
   componentWillMount() {
-    this.setState({ currentRound: this.props.currentRound })
+    this.setState({
+      currentRound: this.props.currentRound
+    })
+  }
+
+  componentDidMount() {
+    this.setState({
+      isReady: true,
+      activeParticipants: this._getActiveParticipants()
+    });
   }
 
   _buildRows() {
@@ -53,6 +68,7 @@ export default class Board extends React.Component {
           currentRound={this.state.currentRound}
           numHeaderCells={3}
           cellWidth={this.props.cellWidth}
+          getParticipantComps={this._getCompsByType.bind(this, 'Participant')}
         />
       )
     });
@@ -77,9 +93,46 @@ export default class Board extends React.Component {
     }
   }
 
+  _getCompsByType(type) {
+    let rowsObj = pickBy(this.refs, function(value, key) {
+      return key.substring(0, (3 + type.length)) === 'rcv' + type;
+    });
+    return map(rowsObj, (value, key) => value);
+  }
+
+  _buildParticipants() {
+    return this.props.participants.map((p, i) => {
+      return (
+        <Participant
+          key={i}
+          ref={'rcvParticipant' + i}
+          index={p.index}
+          name={p.name}
+          posTop={i * this.props.cellWidth }
+          posLeft={'auto'}
+        />
+      )
+    });
+  }
+
+  _getActiveParticipants() {
+    let activeParticipants = [];
+    if (this.props.currentRound === 0) {
+      activeParticipants = this._getCompsByType('Participant');
+    } else {
+      let previousLoser = this.props.rounds[this.props.currentRound - 1].loser;
+      let activeIndexes = this.props.rounds[this.props.currentRound].votes.find(v => v.name === previousLoser);
+      activeIndexes.forEach(a => {
+        activeParticipants.push(this.refs['rcvParticipant' + a]);
+      }, this);
+    }
+    return activeParticipants;
+  }
+
   render() {
     let rows = this._buildRows();
     let roundButtons = this._buildRoundButtons();
+    let participants = this._buildParticipants();
     return (
       <div>
         <h1>placeholder header</h1>
@@ -93,11 +146,20 @@ export default class Board extends React.Component {
 
             <div className="col s2">
               <Lane
-                numRows={this.props.candidates.length}
+                ref="lane"
+                //numRows={this.props.candidates.length}
                 currentRound={this.state.currentRound}
-                participants={this.props.participants}
+                numParticipants={this.props.participants.length}
                 cellWidth={this.props.cellWidth}
+                getRowComps={this._getCompsByType.bind(this, 'Row')}
+                getParticipantComps={this._getCompsByType.bind(this, 'Participant')}
+                boardIsReady={this.state.isReady}
+                activeParticipants={this.state.activeParticipants}
               />
+            </div>
+
+            <div className="participants">
+              {participants}
             </div>
 
           </div>

@@ -6,10 +6,10 @@ import Board from './components/Board/index.js';
 var results = require('./test-results.json');
 
 let participants = [
-  { name: 'Larry' },
-  { name: 'Curly' },
-  { name: 'Moe' },
-  { name: 'Shemp' }
+  { name: 'Larry', index: 0 },
+  { name: 'Curly', index: 1 },
+  { name: 'Moe', index: 2 },
+  { name: 'Shemp', index: 3 }
 ];
 
 export default ReactDOM.render((

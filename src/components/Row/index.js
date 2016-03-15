@@ -1,4 +1,5 @@
 import React from 'react';
+import { includes } from 'lodash';
 
 import './../../styles/rcv-styles.scss';
 
@@ -26,6 +27,17 @@ export default class Row extends React.Component {
       top: this.props.index * this.props.cellWidth,
       left: this.props.cellWidth * this.props.numHeaderCells + this.state.numParticipants
     };
+  }
+
+  _claimParticipant(index) {
+    if (includes(this.props.rounds[this.props.currentRound], index)) {
+      let match = this.props.getParticipantComps().find(p => p.props.index === index);
+
+      // move to open slot
+      // update open slot
+      //debugger;
+      match.moveTo(this.state.openSlotPos);
+    }
   }
 
   render() {
