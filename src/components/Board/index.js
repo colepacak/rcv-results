@@ -67,7 +67,6 @@ export default class Board extends React.Component {
           numHeaderCells={3}
           cellWidth={this.props.cellWidth}
           getParticipantComps={this._getCompsByType.bind(this, 'Participant')}
-          //loser={this.props.rounds[this.state.currentRound].loser}
         />
       )
     });

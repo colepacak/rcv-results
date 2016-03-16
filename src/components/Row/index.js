@@ -1,5 +1,5 @@
 import React from 'react';
-import { includes } from 'lodash';
+import { includes, assign } from 'lodash';
 
 import './../../styles/rcv-styles.scss';
 
@@ -10,18 +10,12 @@ export default class Row extends React.Component {
     rounds: React.PropTypes.array
   };
 
-  state = { numParticipants: 0 };
-
-  componentWillReceiveProps(nextProps) {
-    //if (nextProps.loser === this.props.name) {
-    //  this.setState({ numParticipants: 0 });
-    //}
-  }
+  state = { activeParticipants: [] };
 
   _getOpenSlotPos() {
     return {
       top: this.props.index * this.props.cellWidth,
-      left: (this.props.cellWidth * this.props.numHeaderCells) + (this.props.cellWidth * this.state.numParticipants)
+      left: (this.props.cellWidth * this.props.numHeaderCells) + (this.props.cellWidth * this.state.activeParticipants.length)
     };
   }
 
@@ -31,7 +25,19 @@ export default class Row extends React.Component {
 
       let openSlotPos = this._getOpenSlotPos();
       match.moveTo(openSlotPos);
-      this.setState({ numParticipants: this.state.numParticipants + 1 });
+
+      let activeParticipants = assign([], this.state.activeParticipants);
+      activeParticipants.push(match);
+      this.setState({ activeParticipants: activeParticipants });
+    }
+  }
+
+  _releaseParticipant(index) {
+    let match = this.state.activeParticipants.find(a => a.props.index === index);
+    if (match) {
+      let activeParticipants = assign([], this.state.activeParticipants);
+      activeParticipants = activeParticipants.filter(a => a.props.index !== match.props.index);
+      this.setState({ activeParticipants: activeParticipants });
     }
   }
 

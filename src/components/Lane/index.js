@@ -3,7 +3,6 @@ import { assign } from 'lodash';
 
 export default class Lane extends React.Component {
   static propTypes = {
-    //numRows: React.PropTypes.number,
     currentRound: React.PropTypes.number
   };
 
@@ -50,8 +49,6 @@ export default class Lane extends React.Component {
 
   _gatherParticipants() {
     return new Promise((function(resolve, reject) {
-      // Only grab participant components that correspond with active participants
-      //let participants = this.props.getParticipantComps();
       let participants = this.state.activeParticipants;
 
       let index = 0;
@@ -60,6 +57,13 @@ export default class Lane extends React.Component {
       function moveParticipant(index) {
         // Move participant to lane
         let participant = participants[index];
+        // Notify rows
+        let payload = {
+          action: 'releaseParticipant',
+          index: participant.props.index
+        };
+        this._notifyObservers(payload);
+
         participant.moveTo({
           top: this.state.openSlotPos.top,
           left: this.state.openSlotPos.left
@@ -105,7 +109,6 @@ export default class Lane extends React.Component {
          * lane needs to manage it's own set so that it can remove them when done
          */
         this.setState({ activeParticipants: [] });
-        //this.props.resetActiveParticipants();
       }
     }
   }
