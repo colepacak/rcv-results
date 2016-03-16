@@ -15,14 +15,15 @@ export default class Lane extends React.Component {
     hasMounted: false
   };
 
+  componentWillMount() {
+    this.setState({ activeParticipants: this.props.activeParticipants })
+  }
+
   componentWillReceiveProps(nextProps) {
-    if (
-      this.state.hasMounted &&
-      !this.props.boardIsReady &&
-      nextProps.boardIsReady
-    ) {
+    if (this.state.hasMounted) {
       this._arrangeParticipants();
     }
+    this.setState({ activeParticipants: nextProps.activeParticipants })
   }
 
   componentDidMount() {
@@ -38,12 +39,22 @@ export default class Lane extends React.Component {
   _arrangeParticipants() {
     if (this.props.currentRound === 0) {
       this._gatherParticipants()
-        .then()
+        .then(this._delay.bind(this, 1000))
         .then(this._releaseParticipants.bind(this));
     } else {
       // gather, then release
       console.log('not round 0');
     }
+  }
+
+  _delay(ms) {
+    return new Promise(function(resolve, reject) {
+      let timer = setInterval((() => {
+        clearInterval(timer);
+        resolve();
+      }).bind(this), ms);
+    });
+
   }
 
   /**
@@ -83,14 +94,27 @@ export default class Lane extends React.Component {
   }
 
   _releaseParticipants() {
-    // #2 calls participants to itself who voted for previous round loser
-    this.props.activeParticipants.forEach(p => {
+    let index = 0;
+    recursiveRelease.call(this, index);
+
+    function recursiveRelease() {
+      let p = this.state.activeParticipants[index];
+
       let payload = {
         action: 'claimParticipant',
         index: p.props.index
       };
       this._notifyObservers(payload);
-    }, this);
+
+      index++;
+      if (index < this.state.activeParticipants.length) {
+        this._delay(100).then(() => {
+          recursiveRelease.call(this, index)
+        });
+      } else {
+        this.setState({ activeParticipants: 0 });
+      }
+    }
   }
 
   _notifyObservers(payload) {

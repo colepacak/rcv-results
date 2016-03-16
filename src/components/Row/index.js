@@ -10,22 +10,12 @@ export default class Row extends React.Component {
     rounds: React.PropTypes.array
   };
 
-  state = {
-    numParticipants: 0,
-    openSlotPos: {
-      top: 0,
-      left: 0
-    }
-  };
-
-  componentWillMount() {
-    this.setState({ openSlotPos: this._getOpenSlotPos() });
-  }
+  state = { numParticipants: 0 };
 
   _getOpenSlotPos() {
     return {
       top: this.props.index * this.props.cellWidth,
-      left: this.props.cellWidth * this.props.numHeaderCells + this.state.numParticipants
+      left: (this.props.cellWidth * this.props.numHeaderCells) + (this.props.cellWidth * this.state.numParticipants)
     };
   }
 
@@ -33,14 +23,14 @@ export default class Row extends React.Component {
     if (includes(this.props.rounds[this.props.currentRound], index)) {
       let match = this.props.getParticipantComps().find(p => p.props.index === index);
 
-      // move to open slot
-      // update open slot
-      //debugger;
-      match.moveTo(this.state.openSlotPos);
+      let openSlotPos = this._getOpenSlotPos();
+      match.moveTo(openSlotPos);
+      this.setState({ numParticipants: this.state.numParticipants + 1 });
     }
   }
 
   render() {
+    let openSlotPos = this._getOpenSlotPos();
     return (
       <tr className="rcv-row">
         <td className="index">{this.props.index}</td>
@@ -52,7 +42,7 @@ export default class Row extends React.Component {
             })
           }
         </td>
-        <td>{'top:' + this.state.openSlotPos.top + ', left: ' + this.state.openSlotPos.left}</td>
+        <td>{'top:' + openSlotPos.top + ', left: ' + openSlotPos.left}</td>
         <td className="loading-zone"></td>
       </tr>
     )
