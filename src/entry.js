@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom';
 
 import Board from './components/Board/index.js';
 
-var results = require('./test-results.json');
+var results = require('./data/results-voteList2.json');
 
 let participants = [
   { name: 'Larry', index: 0 },
