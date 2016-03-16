@@ -1,0 +1,2 @@
+var results = {"candidates":["HB","TD","FH"],"rounds":[{"tally":[{"name":"FH","count":0},{"name":"TD","count":1},{"name":"HB","count":2}],"votes":[{"name":"FH","count":[]},{"name":"TD","count":[2]},{"name":"HB","count":[0,1]}],"count":3,"loserCandidates":[],"loser":null}],"winner":"HB"}
+module.exports = results;
