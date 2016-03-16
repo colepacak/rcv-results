@@ -21,8 +21,11 @@ export default class Lane extends React.Component {
   }
 
   componentDidMount() {
-    let pos = $('.lane', '.rcv-results-container').position();
-    this.setState({ openSlotPos: pos });
+    this.setState({ openSlotPos: this._getOpenSlotPos() });
+  }
+
+  _getOpenSlotPos() {
+    return $('.lane', '.rcv-results-container').position();
   }
 
   _arrangeParticipants() {
