@@ -33,11 +33,26 @@ export default class Row extends React.Component {
   }
 
   _releaseParticipant(index) {
-    let match = this.state.activeParticipants.find(a => a.props.index === index);
+    // Index in context of activeParticipants
+    let matchIndex;
+    let match = this.state.activeParticipants.find((a, i) => {
+      matchIndex = i;
+      return a.props.index === index
+    });
+
     if (match) {
       let activeParticipants = assign([], this.state.activeParticipants);
-      activeParticipants = activeParticipants.filter(a => a.props.index !== match.props.index);
-      this.setState({ activeParticipants: activeParticipants });
+
+      // Filter out participant that matches notification criteria
+      let filteredParticipants = activeParticipants.filter(a => a.props.index !== match.props.index);
+      this.setState({ activeParticipants: filteredParticipants });
+
+      // Reposition participants to occupy newly opened space
+      activeParticipants.forEach((a, i) => {
+        if (i > matchIndex) {
+          a.moveTo({ top: a.state.posTop, left: a.state.posLeft - this.props.cellWidth });
+        }
+      }, this);
     }
   }
 
