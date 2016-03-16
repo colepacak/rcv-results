@@ -12,39 +12,24 @@ export default class Lane extends React.Component {
       top: 0,
       left: 0
     },
-    hasMounted: false
+    activeParticipants: []
   };
 
-  componentWillMount() {
-    this.setState({ activeParticipants: this.props.activeParticipants })
-  }
-
   componentWillReceiveProps(nextProps) {
-    if (this.state.hasMounted) {
-      this._arrangeParticipants();
-    }
-    this.setState({ activeParticipants: nextProps.activeParticipants })
-  }
-
-  componentDidMount() {
-    let pos = $('.lane', '.rcv-results-container').position();
-    this.setState({
-      hasMounted: true,
-      openSlotPos: pos
-    }, function() {
+    this.setState({ activeParticipants: nextProps.activeParticipants }, function() {
       this._arrangeParticipants();
     });
   }
 
+  componentDidMount() {
+    let pos = $('.lane', '.rcv-results-container').position();
+    this.setState({ openSlotPos: pos });
+  }
+
   _arrangeParticipants() {
-    if (this.props.currentRound === 0) {
-      this._gatherParticipants()
-        .then(this._delay.bind(this, 1000))
-        .then(this._releaseParticipants.bind(this));
-    } else {
-      // gather, then release
-      console.log('not round 0');
-    }
+    this._gatherParticipants()
+      .then(this._delay.bind(this, 500))
+      .then(this._releaseParticipants.bind(this));
   }
 
   _delay(ms) {
@@ -65,7 +50,9 @@ export default class Lane extends React.Component {
 
   _gatherParticipants() {
     return new Promise((function(resolve, reject) {
-      let participants = this.props.getParticipantComps();
+      // Only grab participant components that correspond with active participants
+      //let participants = this.props.getParticipantComps();
+      let participants = this.state.activeParticipants;
 
       let index = 0;
       moveParticipant.call(this, index);
@@ -86,6 +73,8 @@ export default class Lane extends React.Component {
           if (index < participants.length) {
             moveParticipant.call(this, index);
           } else {
+            let pos = $('.lane', '.rcv-results-container').position();
+            this.setState({ openSlotPos: pos });
             resolve();
           }
         });
@@ -112,7 +101,11 @@ export default class Lane extends React.Component {
           recursiveRelease.call(this, index)
         });
       } else {
-        this.setState({ activeParticipants: 0 });
+        /**
+         * lane needs to manage it's own set so that it can remove them when done
+         */
+        this.setState({ activeParticipants: [] });
+        //this.props.resetActiveParticipants();
       }
     }
   }

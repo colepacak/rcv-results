@@ -12,6 +12,12 @@ export default class Row extends React.Component {
 
   state = { numParticipants: 0 };
 
+  componentWillReceiveProps(nextProps) {
+    //if (nextProps.loser === this.props.name) {
+    //  this.setState({ numParticipants: 0 });
+    //}
+  }
+
   _getOpenSlotPos() {
     return {
       top: this.props.index * this.props.cellWidth,

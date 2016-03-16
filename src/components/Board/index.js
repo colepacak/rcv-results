@@ -1,6 +1,6 @@
 import React from 'react';
 import classNames from 'classnames';
-import { inRange, pickBy, map } from 'lodash';
+import { inRange, pickBy, map, includes } from 'lodash';
 
 import Row from './../Row/index.js';
 import Lane from './../Lane/index.js';
@@ -37,15 +37,13 @@ export default class Board extends React.Component {
   };
 
   componentWillMount() {
-    this.setState({
-      currentRound: this.props.currentRound
-    })
+    this.setState({ currentRound: this.props.currentRound });
   }
 
   componentDidMount() {
     this.setState({
       isReady: true,
-      activeParticipants: this._getActiveParticipants()
+      activeParticipants: this._getActiveParticipants(this.props.currentRound, 'forward')
     });
   }
 
@@ -69,6 +67,7 @@ export default class Board extends React.Component {
           numHeaderCells={3}
           cellWidth={this.props.cellWidth}
           getParticipantComps={this._getCompsByType.bind(this, 'Participant')}
+          //loser={this.props.rounds[this.state.currentRound].loser}
         />
       )
     });
@@ -79,17 +78,20 @@ export default class Board extends React.Component {
     let nextClasses = classNames('waves-effect', 'waves-light', 'btn', { disabled: this.state.currentRound === this.props.rounds.length - 1 });
     return (
       <div className="round-buttons row">
-        <a className={previousClasses} onClick={this._changeRound.bind(this, -1)}>-</a>
+        <a className={previousClasses} onClick={this._changeRound.bind(this, -1, 'backward')}>-</a>
         <span>Current Round: {this.state.currentRound}</span>
-        <a className={nextClasses} onClick={this._changeRound.bind(this, 1)}>+</a>
+        <a className={nextClasses} onClick={this._changeRound.bind(this, 1, 'forward')}>+</a>
       </div>
     )
   }
 
-  _changeRound(increment) {
+  _changeRound(increment, direction) {
     let currentRound = this.state.currentRound + increment;
     if (inRange(currentRound, 0, this.props.rounds.length)) {
-      this.setState({ currentRound: currentRound })
+      this.setState({
+        currentRound: currentRound,
+        activeParticipants: this._getActiveParticipants(currentRound, direction)
+      });
     }
   }
 
@@ -115,13 +117,29 @@ export default class Board extends React.Component {
     });
   }
 
-  _getActiveParticipants() {
+  _getActiveParticipants(currentRound, direction = 'forward') {
+    let increment;
+    if (direction === 'forward') {
+      increment = -1;
+    } else if (direction === 'backward') {
+      increment = 1;
+    } else {
+      throw new Error('RcvResultsInvalidDirectionArg:Board._getActiveParticipants');
+    }
+
     let activeParticipants = [];
-    if (this.props.currentRound === 0) {
+    if (currentRound === 0 && direction === 'forward') {
       activeParticipants = this._getCompsByType('Participant');
     } else {
-      let previousLoser = this.props.rounds[this.props.currentRound - 1].loser;
-      let activeIndexes = this.props.rounds[this.props.currentRound].votes.find(v => v.name === previousLoser);
+      let previousLoser;
+      let activeIndexes;
+      if (direction === 'forward') {
+        previousLoser = this.props.rounds[currentRound + increment].loser;
+        activeIndexes = this.props.rounds[currentRound + increment].votes.find(v => v.name === previousLoser).count;
+      } else {
+        previousLoser = this.props.rounds[currentRound].loser;
+        activeIndexes = this.props.rounds[currentRound].votes.find(v => v.name === previousLoser).count;
+      }
       activeIndexes.forEach(a => {
         activeParticipants.push(this.refs['rcvParticipant' + a]);
       }, this);
@@ -147,13 +165,13 @@ export default class Board extends React.Component {
             <div className="col s2">
               <Lane
                 ref="lane"
-                //numRows={this.props.candidates.length}
                 currentRound={this.state.currentRound}
                 numParticipants={this.props.participants.length}
                 cellWidth={this.props.cellWidth}
                 getRowComps={this._getCompsByType.bind(this, 'Row')}
                 getParticipantComps={this._getCompsByType.bind(this, 'Participant')}
                 boardIsReady={this.state.isReady}
+                rounds={this.props.rounds}
                 activeParticipants={this.state.activeParticipants}
               />
             </div>
