@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom';
 
 import Board from './components/Board/index.js';
 
-var results = require('./data/results-voteList2.json');
+var results = require('./data/results-voteList5.json');
 
 let participants = [
   { name: 'Larry', index: 0 },
@@ -19,5 +19,6 @@ export default ReactDOM.render((
     participants={participants}
     currentRound={0}
     cellWidth={30}
+    transitionDuration={400}
   />
 ), document.getElementById('react-mount'));

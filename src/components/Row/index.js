@@ -10,7 +10,53 @@ export default class Row extends React.Component {
     rounds: React.PropTypes.array
   };
 
-  state = { activeParticipants: [] };
+  state = {
+    activeParticipants: [],
+    observers: {
+      ReleaseParticipant: []
+    }
+  };
+
+  componentWillMount() {
+    this.setState({ currentRound: this.props.currentRound });
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if (this.state.currentRound !== nextProps.currentRound) {
+      this.setState({ currentRound: nextProps.currentRound }, function() {
+        this._releaseParticipants();
+      });
+    }
+  }
+  
+  _onArrangeInitialParticipants(payload) {
+    if (
+      this.props.name !== payload.name ||
+      !payload.participants.length
+    ) {
+      return;
+    }
+
+    let index = 0;
+    recursiveClaimParticipant.call(this, index);
+
+    function recursiveClaimParticipant(index) {
+      let p = payload.participants[index];
+      let match = this.props.getParticipant(p);
+
+      let openSlotPos = this._getOpenSlotPos();
+      match.initialMove(openSlotPos);
+
+      let activeParticipants = assign([], this.state.activeParticipants);
+      activeParticipants.push(match);
+      this.setState({ activeParticipants: activeParticipants }, function() {
+        index++;
+        if (index < payload.participants.length) {
+          recursiveClaimParticipant.call(this, index);
+        }
+      });
+    }
+  }
 
   _getOpenSlotPos() {
     return {
@@ -19,52 +65,83 @@ export default class Row extends React.Component {
     };
   }
 
-  _claimParticipant(index) {
-    if (includes(this.props.rounds[this.props.currentRound], index)) {
-      let match = this.props.getParticipantComps().find(p => p.props.index === index);
+  _releaseParticipants() {
+    let increment = 0;
+    if (this.props.direction === 'forward') {
+      increment = -1;
+    }
 
-      let openSlotPos = this._getOpenSlotPos();
-      match.moveTo(openSlotPos);
+    let previousLoser = this.props.rounds[this.state.currentRound + increment].loser;
 
-      let activeParticipants = assign([], this.state.activeParticipants);
-      activeParticipants.push(match);
-      this.setState({ activeParticipants: activeParticipants });
+    if (this.props.name === previousLoser) {
+      // release participants to siblings via notification
+      let index = 0;
+      return recursiveRelease.call(this, index);
+    }
+
+    function recursiveRelease(index) {
+      let participant = this.state.activeParticipants[index];
+      let payload = {
+        action: 'ReleaseParticipant',
+        index: participant.props.index,
+        participant: participant
+      };
+      return this._notifyObservers(payload)
+        .then(this._delay.bind(this, this.props.transitionDuration))
+        .then(() => {
+          index ++;
+          if (index < this.state.activeParticipants.length) {
+            return recursiveRelease.call(this, index);
+          }
+        });
+
     }
   }
 
-  _releaseParticipant(index) {
-    // Index in context of activeParticipants
-    let matchIndex;
-    let match = this.state.activeParticipants.find((a, i) => {
-      matchIndex = i;
-      return a.props.index === index
+  _notifyObservers(payload) {
+    return new Promise((resolve, reject) => {
+      this.props.getSiblings().forEach(r => {
+        r['_on' + payload.action](payload).then(function() {
+          resolve();
+        });
+      });
     });
+  }
 
-    if (match) {
-      let activeParticipants = assign([], this.state.activeParticipants);
+  _onReleaseParticipant(payload) {
+    return new Promise((resolve, reject) => {
+      if (includes(this.props.rounds[this.state.currentRound].votes.find(v => v.name === this.props.name).count, payload.index)) {
+        let openSlotPos = this._getOpenSlotPos();
+        payload.participant.moveTo(openSlotPos);
 
-      // Filter out participant that matches notification criteria
-      let filteredParticipants = activeParticipants.filter(a => a.props.index !== match.props.index);
-      this.setState({ activeParticipants: filteredParticipants });
+        let activeParticipants = assign([], this.state.activeParticipants);
+        activeParticipants.push(payload.participant);
+        this.setState({ activeParticipants: activeParticipants }, function() {
+          resolve();
+        });
+      }
+    });
+  }
 
-      // Reposition participants to occupy newly opened space
-      activeParticipants.forEach((a, i) => {
-        if (i > matchIndex) {
-          a.moveTo({ top: a.state.posTop, left: a.state.posLeft - this.props.cellWidth });
-        }
-      }, this);
-    }
+  _delay(ms) {
+    return new Promise((resolve, reject) => {
+      let timer = setInterval(() => {
+        clearInterval(timer);
+        resolve();
+      }, ms);
+    });
   }
 
   render() {
     let openSlotPos = this._getOpenSlotPos();
+    let participantIndexes = this.props.rounds[this.state.currentRound].votes.find(v => v.name === this.props.name).count;
     return (
       <tr className="rcv-row">
         <td className="index">{this.props.index}</td>
         <td className="name">{this.props.name}</td>
         <td className="participant-indexes">
           {
-            this.props.rounds[this.props.currentRound].map((participant, i) => {
+            participantIndexes.map((participant, i) => {
               return (<span key={i}>{participant}</span>)
             })
           }
