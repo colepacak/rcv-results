@@ -5,7 +5,7 @@ import { assign, inRange, pickBy, map, includes } from 'lodash';
 import Row from './../Row/index.js';
 import Participant from './../Participant/index.js';
 
-export default class Board extends React.Component {
+export default class RCVResults extends React.Component {
 
   static propTypes = {
     candidates: React.PropTypes.array,
@@ -105,36 +105,6 @@ export default class Board extends React.Component {
       )
     });
   }
-
-  //_getActiveParticipants(currentRound, direction = 'forward') {
-  //  let increment;
-  //  if (direction === 'forward') {
-  //    increment = -1;
-  //  } else if (direction === 'backward') {
-  //    increment = 1;
-  //  } else {
-  //    throw new Error('RcvResultsInvalidDirectionArg:Board._getActiveParticipants');
-  //  }
-  //
-  //  let activeParticipants = [];
-  //  if (currentRound === 0 && direction === 'forward') {
-  //    activeParticipants = this._getCompsByType('Participant');
-  //  } else {
-  //    let previousLoser;
-  //    let activeIndexes;
-  //    if (direction === 'forward') {
-  //      previousLoser = this.props.rounds[currentRound + increment].loser;
-  //      activeIndexes = this.props.rounds[currentRound + increment].votes.find(v => v.name === previousLoser).count;
-  //    } else {
-  //      previousLoser = this.props.rounds[currentRound].loser;
-  //      activeIndexes = this.props.rounds[currentRound].votes.find(v => v.name === previousLoser).count;
-  //    }
-  //    activeIndexes.forEach(a => {
-  //      activeParticipants.push(this.refs['rcvParticipant' + a]);
-  //    }, this);
-  //  }
-  //  return activeParticipants;
-  //}
 
   _arrangeInitialParticipants() {
     let index = 0;

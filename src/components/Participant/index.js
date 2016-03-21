@@ -25,26 +25,32 @@ export default class Participant extends React.Component {
     });
   }
 
-  moveTo(pos) {
-    return moveHorizontal.call(this)
+  moveForward(pos) {
+    return this._moveHorizontal.call(this, pos)
       .then(this._delay.bind(this, this.props.transitionStepDuration))
-      .then(moveVertical.bind(this));
+      .then(this._moveVertical.bind(this, pos));
+  }
 
-    function moveHorizontal() {
-      return new Promise((resolve, reject) => {
-        this.setState({ posLeft: pos.left }, function() {
-          resolve();
-        });
-      });
-    }
+  moveBackward(pos) {
+    return this._moveVertical.call(this, pos)
+      .then(this._delay.bind(this, this.props.transitionStepDuration))
+      .then(this._moveHorizontal.bind(this, pos));
+  }
 
-    function moveVertical() {
-      return new Promise((resolve, reject) => {
-        this.setState({ posTop: pos.top }, function() {
-          resolve();
-        });
+  _moveHorizontal(pos) {
+    return new Promise((resolve, reject) => {
+      this.setState({ posLeft: pos.left }, function() {
+        resolve();
       });
-    }
+    });
+  }
+
+  _moveVertical(pos) {
+    return new Promise((resolve, reject) => {
+      this.setState({ posTop: pos.top }, function() {
+        resolve();
+      });
+    });
   }
 
   _delay(ms) {
